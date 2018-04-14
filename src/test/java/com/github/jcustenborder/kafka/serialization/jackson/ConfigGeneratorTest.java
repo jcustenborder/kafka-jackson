@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -241,20 +241,6 @@ public abstract class ConfigGeneratorTest {
         .arg(JExpr._new(codeModel.ref(JavaTimeModule.class)));
   }
 
-  class ConfigurationEntry {
-    public final JFieldVar docConstant;
-    public final JFieldVar configConstant;
-    public final JFieldVar configValue;
-
-
-    ConfigurationEntry(JFieldVar docConstant, JFieldVar configConstant, JFieldVar configValue) {
-      this.docConstant = docConstant;
-      this.configConstant = configConstant;
-      this.configValue = configValue;
-    }
-
-  }
-
   ConfigurationEntry addConfigurationEntry(
       String configConstantName,
       String configConstantValue,
@@ -366,5 +352,19 @@ public abstract class ConfigGeneratorTest {
         .arg(enabledByDefault)
         .arg(configDefImportanceMedium)
         .arg(entry.docConstant);
+  }
+
+  class ConfigurationEntry {
+    public final JFieldVar docConstant;
+    public final JFieldVar configConstant;
+    public final JFieldVar configValue;
+
+
+    ConfigurationEntry(JFieldVar docConstant, JFieldVar configConstant, JFieldVar configValue) {
+      this.docConstant = docConstant;
+      this.configConstant = configConstant;
+      this.configValue = configValue;
+    }
+
   }
 }

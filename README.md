@@ -8,10 +8,39 @@ available settings for Jackson are configurable.
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.jcustenborder.kafka/kafka-jackson.svg)](https://www.mvnrepository.com/artifact/com.github.jcustenborder.kafka/kafka-jackson)
 
-# Serializer
+# What if I don't know what settings to use. 
+
+If you are already defining a ObjectMapper that works for you and you want to use it's settings. Use 
+this method to dump the non default settings. This will compare all of the default settings against
+the supplied ObjectMapper and return the configuration values that the equivalent.
 
 ```java
+ObjectMapper objectMapper = new ObjectMapper();
+objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true)
+Map<String, String> actual = JacksonSerializer.nonDefaultSettings(objectMapper);
+```
 
+# Kafka Streams Serde
+
+The Serde can be configured by passing in the class to deserialize to. This will return a Serde with 
+configured to the object type. When configure is called it will ignore any `output.class` supplied 
+since it has already been configured. 
+
+```java
+Serde<TestPojo> serde = JacksonSerde.of(TestPojo.class);
+```
+
+# Serializer
+
+The Serializer does not need to be specified with a type. It will serialize any object that is passed to it. 
+
+```java
+Map<String, String> settings = ImmutableMap.of(
+    ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, JacksonSerializer.class.getName(),
+    ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonSerializer.class.getName()
+);
+Producer<String, TestPojo> producer = new KafkaProducer<>(settings);
+// Do your thing
 ```
 
 ## Configuration
@@ -62,13 +91,35 @@ available settings for Jackson are configurable.
 | write.enums.using.to.string.enable               | See [WRITE_ENUMS_USING_TO_STRING](https://fasterxml.github.io/jackson-databind/javadoc/2.9/com/fasterxml/jackson/databind/SerializationFeature.html#WRITE_ENUMS_USING_TO_STRING)                      | boolean | false   |              | medium     |
 | write.single.elem.arrays.unwrapped.enable        | See [WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED](https://fasterxml.github.io/jackson-databind/javadoc/2.9/com/fasterxml/jackson/databind/SerializationFeature.html#WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED)        | boolean | false   |              | medium     |
 
-
-
 # Deserializer
 
-```java
+## Generically processing Json
 
+By default if you do not configure a class to deserialize to the serializer will deserialize to a Jackson
+JsonNode. Assuming that your data is Json objects you can use ObjectNode. 
+
+```java
+Map<String, String> settings = ImmutableMap.of(
+    ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, JacksonDeserializer.class.getName(),
+    ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonDeserializer.class.getName()
+);
+Consumer<JsonNode, JsonNode> consumer = new KafkaConsumer<JsonNode, JsonNode>(settings);
+// Do your thing
 ```
+
+## Strongly typed Json
+
+You can tell the deserializer to deserialize to a Pojo.
+
+```java
+Map<String, Object> settings = ImmutableMap.of(
+    ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, JacksonDeserializer.class.getName(),
+    ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonDeserializer.class.getName(),
+    "value.deserializer.output.class", TestPojo.class.getName()
+);
+Consumer<JsonNode, TestPojo> consumer = new KafkaConsumer<>(settings);
+```
+
 
 ## Configuration
 
@@ -129,6 +180,3 @@ available settings for Jackson are configurable.
 | use.std.bean.naming.enable                          | See [USE_STD_BEAN_NAMING](https://fasterxml.github.io/jackson-databind/javadoc/2.9/com/fasterxml/jackson/databind/MapperFeature.html#USE_STD_BEAN_NAMING)                                                            | boolean | false                                         |              | medium     |
 | use.wrapper.name.as.property.name.enable            | See [USE_WRAPPER_NAME_AS_PROPERTY_NAME](https://fasterxml.github.io/jackson-databind/javadoc/2.9/com/fasterxml/jackson/databind/MapperFeature.html#USE_WRAPPER_NAME_AS_PROPERTY_NAME)                                | boolean | false                                         |              | medium     |
 | wrap.exceptions.enable                              | See [WRAP_EXCEPTIONS](https://fasterxml.github.io/jackson-databind/javadoc/2.9/com/fasterxml/jackson/databind/DeserializationFeature.html#WRAP_EXCEPTIONS)                                                           | boolean | true                                          |              | medium     |
-
-
-# Serde
